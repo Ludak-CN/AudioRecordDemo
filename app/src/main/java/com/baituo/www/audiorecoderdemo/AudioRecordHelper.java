@@ -11,9 +11,12 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 
 /*
 * author : mz
+*
+* 实现录制音频-基于AudioRecord
 * */
 public class AudioRecordHelper implements Runnable{
 
@@ -28,11 +31,9 @@ public class AudioRecordHelper implements Runnable{
 
     private static final AudioRecordHelper sHelper = new AudioRecordHelper();
 
-
-
     private AudioRecord audioRecord ;
     private File file   ;
-    private OnDecibelListener onDecibelListener ;
+    private OnAudioRecordlListener onDecibelListener ;
 
     public static AudioRecordHelper getAudioHelper(){
         return sHelper ;
@@ -43,7 +44,7 @@ public class AudioRecordHelper implements Runnable{
        startRecord(filePath,null);
     }
 
-    public void startRecord(String filePath,OnDecibelListener dbListener){
+    public void startRecord(String filePath,OnAudioRecordlListener dbListener){
         if(audioRecord!=null){
             audioRecord.release();
         }
@@ -53,6 +54,7 @@ public class AudioRecordHelper implements Runnable{
         //执行录制,简单采用AsyncTask线程池
         AsyncTask.THREAD_POOL_EXECUTOR.execute(this);
     }
+
 
     @Override
     public void run() {
@@ -80,7 +82,10 @@ public class AudioRecordHelper implements Runnable{
 
                         //分贝值,非UI线程调用
                         if(onDecibelListener!=null){
+                            //分贝值
                             onDecibelListener.dbResult(getDecibelForPcm(readData,readLength));
+                            //录制时长
+                            onDecibelListener.recordTime(getDuration());
                         }
                     }
                 }
@@ -171,13 +176,13 @@ public class AudioRecordHelper implements Runnable{
      * 文件大小(字节) = 采样率*采样位深*采样通道数*录制时间
      * 可以通过上面的公式计算出录制时间，上面除了录制时间，其它都是以知的。
      * */
-    public long getDuration(){
-        long recordTime = 0l ;
+    public double getDuration(){
+        double recordTime = 0l ;
         if(file!=null&&audioRecord!=null){
             double tmp = file.length() ;
-            recordTime = (long) ((tmp/(audioRecord.getChannelCount()*audioRecord.getSampleRate()*AUDIO_ENCODING_BIT))+0.5);
+            recordTime = (tmp/(audioRecord.getChannelCount()*audioRecord.getSampleRate()*AUDIO_ENCODING_BIT));
         }
-        return recordTime ;
+        return new BigDecimal(recordTime).setScale(2,BigDecimal.ROUND_HALF_UP).doubleValue();
     }
 
     //获取录制的文件
@@ -209,7 +214,12 @@ public class AudioRecordHelper implements Runnable{
     }
 
     //分贝值监听
-    public interface OnDecibelListener{
+    public interface OnAudioRecordlListener{
+
+        //分贝值
         void dbResult(double db);
+
+        //录制时长，保留2位小数
+        void recordTime(double recordTime);
     }
 }
