@@ -1,4 +1,4 @@
-package com.baituo.www.audiorecoderdemo;
+package com.baituo.www.audiorecoderdemo.activity.audio;
 
 import android.Manifest;
 import android.media.AudioRecord;
@@ -10,12 +10,15 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.baituo.www.audiorecoderdemo.R;
+import com.baituo.www.audiorecoderdemo.helper.audio.AudioRecordHelper;
+
 import java.io.File;
 
 public class AudioRecordActivity extends AppCompatActivity {
 
     private Button startRecordBtn,pauseRecordBtn,resumeRecordBtn,endRecordBtn ;
-    private TextView dbText,recordTimeText ;
+    private TextView dbText,recordTimeText ,saveFilePath;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -26,6 +29,7 @@ public class AudioRecordActivity extends AppCompatActivity {
         resumeRecordBtn = findViewById(R.id.resumeRecordBtn);
         dbText = findViewById(R.id.dbText);
         recordTimeText = findViewById(R.id.recordTimeText);
+        saveFilePath = findViewById(R.id.saveFilePath);
 
         ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.RECORD_AUDIO},0x11); //权限必须要的，demo对权限没有仔细检查
         startRecordBtn.setOnClickListener(new View.OnClickListener() {

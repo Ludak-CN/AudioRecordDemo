@@ -1,4 +1,4 @@
-package com.baituo.www.audiorecoderdemo;
+package com.baituo.www.audiorecoderdemo.utils;
 
 import android.annotation.SuppressLint;
 import android.content.ContentUris;

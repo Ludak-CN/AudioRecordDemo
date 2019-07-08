@@ -1,4 +1,4 @@
-package com.baituo.www.audiorecoderdemo;
+package com.baituo.www.audiorecoderdemo.helper.audio;
 
 import android.media.AudioFormat;
 import android.media.AudioRecord;
@@ -75,7 +75,7 @@ public class AudioRecordHelper implements Runnable{
             }
             while (true){
                 if(audioRecord.getState()==AudioRecord.STATE_UNINITIALIZED){
-                    //说明被释放资源,此AudioRecord将无效，需要重新初始化,结束录制
+                    //说明被释放资源,此AudioRecord将无效，需要重新初始化,结束录制,录制过程中点击结束录制
                     break ;
                 }else if(audioRecord.getRecordingState()==AudioRecord.RECORDSTATE_RECORDING){
                     //正在录制状态

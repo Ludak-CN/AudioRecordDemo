@@ -1,11 +1,8 @@
-package com.baituo.www.audiorecoderdemo;
+package com.baituo.www.audiorecoderdemo.activity.audio;
 
 import android.Manifest;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.media.AudioTrack;
-import android.net.Uri;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -14,9 +11,11 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.afollestad.materialdialogs.folderselector.FileChooserDialog;
 
-import java.io.File;
+
+import com.baituo.www.audiorecoderdemo.R;
+import com.baituo.www.audiorecoderdemo.utils.UriUtils;
+import com.baituo.www.audiorecoderdemo.helper.audio.AudioTrackHelper;
 
 public class AudioTrackActivity extends AppCompatActivity{
 

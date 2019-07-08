@@ -1,4 +1,4 @@
-package com.baituo.www.audiorecoderdemo;
+package com.baituo.www.audiorecoderdemo.helper.audio;
 
 import android.media.AudioAttributes;
 import android.media.AudioFormat;
