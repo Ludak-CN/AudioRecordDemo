@@ -17,6 +17,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.math.BigDecimal;
 
 /*
 * author : mz
@@ -35,20 +36,27 @@ public class AudioTrackHelper implements Runnable{
     private AudioTrack audioTrack ;
     private File file  ;
     private int mode ;
+    private AudioTrackProgressListener listener ;
 
     public  static AudioTrackHelper getAudioTrackHelper(){
         return sHelper ;
+    }
+
+    public void startAudioTrack(String filePath,AudioTrackProgressListener listener){
+        startAudioTrack(filePath,AudioTrack.MODE_STREAM,listener);
     }
 
     /*
        开始播放某一个pcm格式的音频文件
     * trackFile:  播放的pcm数据路径
     * mode : 播放模式
+    * listener:播放进度监听
     * */
-    public void startAudioTrack(String trackFile,int mode){
+    public void startAudioTrack(String trackFile,int mode,AudioTrackProgressListener listener){
         if(audioTrack!=null){
             audioTrack.release();
         }
+        this.listener  = listener ;
         this.mode = mode ;
         file = new File(trackFile);
         if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.O){
@@ -90,16 +98,30 @@ public class AudioTrackHelper implements Runnable{
             int readLength  = 0 ;
             //需要先进行播放
             audioTrack.play();
+            //开始播放
+            if(listener!=null){
+                listener.trackStart(getTotalDuration());
+            }
+            double sumLength = 0 ;
             while(true){
                 if(audioTrack.getState()==AudioTrack.STATE_UNINITIALIZED){
                     //说明调用了release方法，释放了资源，需要重新初始化对象
                     Log.d(DEBUG_LOG,"播放中途，释放资源");
+                    if(listener!=null){
+
+                    }
                     break ;
                 }else if(audioTrack.getPlayState()==AudioTrack.PLAYSTATE_PLAYING){
                     readLength = raf.read(readData,0,readData.length);
                     if(readLength>0){
+                        sumLength+=readLength ;
                         //说明有数据,播放
                         audioTrack.write(readData,0,readLength);
+                        if(listener!=null){
+                            double currentTime = (sumLength/raf.length())*getTotalDuration();
+                            listener.trackProgress(new BigDecimal(currentTime).setScale(2,BigDecimal.ROUND_HALF_UP).doubleValue()
+                                    ,getTotalDuration(),sumLength==raf.length()?true:false);
+                        }
                     }else{
                         //正常播放结束
                         Log.d(DEBUG_LOG,"正常播放结束");
@@ -107,9 +129,10 @@ public class AudioTrackHelper implements Runnable{
                     }
                 }
             }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (Exception e) {
+            if(listener!=null){
+                listener.trackFailed(e);
+            }
             e.printStackTrace();
         }finally {
             audioTrack.release();
@@ -125,7 +148,6 @@ public class AudioTrackHelper implements Runnable{
         ByteArrayOutputStream byteOutput = null;
         try {
             byte[] readData  = new byte[MIN_BUFFER_SIZE];
-
             int length = 0 ;
             fis = new FileInputStream(file);
             bis = new BufferedInputStream(fis);
@@ -160,7 +182,7 @@ public class AudioTrackHelper implements Runnable{
     }
 
     public void resumeTrack(){
-        if(audioTrack!=null&&audioTrack.getPlayState()!=AudioTrack.PLAYSTATE_PAUSED){
+        if(audioTrack!=null&&audioTrack.getPlayState()==AudioTrack.PLAYSTATE_PAUSED){
             audioTrack.play();
         }
     }
@@ -171,6 +193,15 @@ public class AudioTrackHelper implements Runnable{
         }
     }
 
+    public double getTotalDuration(){
+        double recordTime = 0l ;
+        if(file!=null&&audioTrack!=null){
+            double tmp = file.length() ;
+            recordTime = (tmp/(audioTrack.getChannelCount()*audioTrack.getSampleRate()*AUDIO_FORMAT));
+        }
+        return new BigDecimal(recordTime).setScale(2,BigDecimal.ROUND_HALF_UP).doubleValue();
+    }
+
     private void safeClose(Closeable closeable){
         if(closeable!=null){
             try {
@@ -179,5 +210,16 @@ public class AudioTrackHelper implements Runnable{
                 e.printStackTrace();
             }
         }
+    }
+
+    public interface AudioTrackProgressListener{
+        //开始播放
+        void trackStart(double totalTime);
+
+        //播放失败
+        void trackFailed(Exception e);
+
+        //播放进度
+        void trackProgress(double currentTime,double totalTime,boolean isDone);
     }
 }

@@ -35,6 +35,11 @@ public class AudioRecordActivity extends AppCompatActivity {
                 AudioRecordHelper.getAudioHelper()
                         .startRecord(getExternalCacheDir().getAbsolutePath() + File.separator + System.currentTimeMillis(), new AudioRecordHelper.OnAudioRecordlListener() {
                             @Override
+                            public void recordStart() {
+
+                            }
+
+                            @Override
                             public void dbResult(final double db) {
                                 runOnUiThread(new Runnable() {
                                     @Override
@@ -52,6 +57,11 @@ public class AudioRecordActivity extends AppCompatActivity {
                                         recordTimeText.setText("当前录制时间:"+recordTime);
                                     }
                                 });
+                            }
+
+                            @Override
+                            public void recordFailed(Exception e) {
+
                             }
                         });
             }

@@ -70,6 +70,9 @@ public class AudioRecordHelper implements Runnable{
             fos = new FileOutputStream(file);
             bos = new BufferedOutputStream(fos);
             audioRecord.startRecording();
+            if(onDecibelListener!=null){
+                onDecibelListener.recordStart();
+            }
             while (true){
                 if(audioRecord.getState()==AudioRecord.STATE_UNINITIALIZED){
                     //说明被释放资源,此AudioRecord将无效，需要重新初始化,结束录制
@@ -91,9 +94,10 @@ public class AudioRecordHelper implements Runnable{
                 }
             }
             Log.d(DEBUG_LOG,"正常录制结束");
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        }catch (Exception e) {
+            if(onDecibelListener!=null){
+                onDecibelListener.recordFailed(e);
+            }
             e.printStackTrace();
         }finally {
             Log.d(DEBUG_LOG,"finally录制结束");
@@ -216,10 +220,16 @@ public class AudioRecordHelper implements Runnable{
     //分贝值监听
     public interface OnAudioRecordlListener{
 
+        //开始录制
+        void recordStart();
+
         //分贝值
         void dbResult(double db);
 
         //录制时长，保留2位小数
         void recordTime(double recordTime);
+
+        //录制失败
+        void recordFailed(Exception e);
     }
 }
